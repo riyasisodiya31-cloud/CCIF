@@ -21,14 +21,32 @@ cases = [
     }
 ]
 
+suspects = [
+    {
+        "id":"S-1001",
+        "name":"Arjun Varma",
+        "risk":92,
+        "gang":"North Quay Syndicate"
+    },
+    {
+        "id":"S-1002",
+        "name":"Meera Khan",
+        "risk":78,
+        "gang":"None"
+    }
+]
+
 
 @app.get("/")
 def home():
-    return {
-        "message":"CCIF Backend Running"
-    }
+    return {"message":"CCIF Backend Running"}
 
 
 @app.get("/cases")
 def get_cases():
     return cases
+
+
+@app.get("/suspects")
+def get_suspects():
+    return suspects
