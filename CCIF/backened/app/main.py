@@ -1,8 +1,6 @@
 from fastapi import FastAPI
-from app.routes import alerts
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.routes import cases, suspects
+from app.routes import alerts, cases, copilot, dashboard, evidence, graph, suspects
 
 app = FastAPI(
     title="CCIF API",
@@ -38,4 +36,24 @@ app.include_router(
     alerts.router,
     prefix="/alerts",
     tags=["Alerts"]
+)
+app.include_router(
+    evidence.router,
+    prefix="/evidence",
+    tags=["Evidence"]
+)
+app.include_router(
+    dashboard.router,
+    prefix="/dashboard",
+    tags=["Dashboard"]
+)
+app.include_router(
+    graph.router,
+    prefix="/graph",
+    tags=["Graph"]
+)
+app.include_router(
+    copilot.router,
+    prefix="/copilot",
+    tags=["Copilot"]
 )
