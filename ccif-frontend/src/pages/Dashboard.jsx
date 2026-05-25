@@ -1,17 +1,27 @@
 import cytoscape from 'cytoscape'
 import { motion } from 'framer-motion'
 import { Activity, BrainCircuit, Crosshair, Radar, ShieldCheck, Sparkles, Zap } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import HoloPanel from '../components/HoloPanel.jsx'
-import { alerts, cases, evidence, graphData, locations, suspects } from '../data/mockData.js'
-
-const summary = [
-  { value: '3', label: 'emerging criminal clusters detected' },
-  { value: '2', label: 'cold case matches identified' },
-  { value: '7', label: 'active threat alerts' }
-]
+import { graphData, locations } from '../data/mockData.js'
+import { getDashboardData } from '../services/dashboardService.js'
 
 export default function Dashboard() {
+  const [data, setData] = useState({ cases: [], suspects: [], evidence: [], alerts: [] })
+
+  useEffect(() => {
+    getDashboardData().then(setData)
+  }, [])
+
+  const { cases, suspects, evidence, alerts } = data
+
+  const summary = [
+    { value: String(alerts.filter((a) => a.severity === 'Critical' || a.severity === 'High').length), label: 'active threat alerts' },
+    { value: String(cases.filter((c) => c.status === 'Active').length), label: 'active investigations' },
+    { value: String(suspects.length), label: 'suspects indexed' },
+  ]
+
   return (
     <div className="space-y-8 pb-20 lg:pb-6">
       <section className="grid min-h-[620px] items-center gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(460px,0.75fr)]">
@@ -52,10 +62,10 @@ export default function Dashboard() {
       <section className="columns-1 gap-5 space-y-5 xl:columns-2 2xl:columns-3">
         <ThreatRadar />
         <CrimeHeatmap />
-        <InvestigationTimeline />
-        <LiveAlertsModule />
+        <InvestigationTimeline cases={cases} />
+        <LiveAlertsModule alerts={alerts} />
         <AiInsights />
-        <TrustConstellation />
+        <TrustConstellation evidence={evidence} />
       </section>
     </div>
   )
@@ -187,7 +197,7 @@ function CrimeHeatmap() {
   )
 }
 
-function InvestigationTimeline() {
+function InvestigationTimeline({ cases }) {
   return (
     <HoloPanel className="mb-5 inline-block w-full break-inside-avoid p-6">
       <PanelTitle icon={Activity} label="Active Investigations" />
@@ -198,10 +208,10 @@ function InvestigationTimeline() {
               <span className="h-3 w-3 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(34,211,238,.8)]" />
               {index < 4 && <span className="mt-2 h-12 w-px bg-gradient-to-b from-cyan-300/50 to-transparent" />}
             </div>
-            <div>
+            <Link to={`/cases/${item.id}`} className="hover:text-cyan-200 transition-colors">
               <p className="font-medium text-white">{item.title}</p>
               <p className="mt-1 text-sm text-zinc-500">{item.location} / trust {item.trust}%</p>
-            </div>
+            </Link>
           </motion.div>
         ))}
       </div>
@@ -209,7 +219,7 @@ function InvestigationTimeline() {
   )
 }
 
-function LiveAlertsModule() {
+function LiveAlertsModule({ alerts }) {
   return (
     <HoloPanel className="mb-5 inline-block w-full break-inside-avoid p-6">
       <PanelTitle icon={Zap} label="Live Alerts" />
@@ -249,7 +259,7 @@ function AiInsights() {
   )
 }
 
-function TrustConstellation() {
+function TrustConstellation({ evidence }) {
   return (
     <HoloPanel className="mb-5 inline-block w-full break-inside-avoid p-6">
       <PanelTitle icon={ShieldCheck} label="Trust Score Fabric" />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { getCases } from "../services/caseService";
 
 export default function Cases() {
@@ -35,8 +36,8 @@ export default function Cases() {
 
         {cases.map((item, index) => (
 
+          <Link key={item.id} to={`/cases/${item.id}`}>
           <motion.div
-            key={item.id}
             initial={{ opacity:0,y:30 }}
             animate={{ opacity:1,y:0 }}
             transition={{
@@ -55,6 +56,7 @@ export default function Cases() {
             backdrop-blur-xl
             p-6
             shadow-[0_0_40px_rgba(0,255,255,0.08)]
+            cursor-pointer
             "
           >
 
@@ -96,6 +98,7 @@ export default function Cases() {
             </div>
 
           </motion.div>
+          </Link>
 
         ))}
 

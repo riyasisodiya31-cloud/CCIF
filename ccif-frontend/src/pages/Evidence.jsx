@@ -1,11 +1,18 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Fingerprint, ShieldCheck, Workflow } from 'lucide-react'
 import HoloPanel from '../components/HoloPanel.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
-import { evidence } from '../data/mockData.js'
+import { getEvidence } from '../services/evidenceService.js'
 
 export default function Evidence() {
+  const [evidence, setEvidence] = useState([])
+
+  useEffect(() => {
+    getEvidence().then(setEvidence)
+  }, [])
+
   const verified = evidence.filter((item) => item.integrity === 'Verified' || item.integrity === 'Intact').length
   return (
     <div className="space-y-8 pb-20 lg:pb-6">

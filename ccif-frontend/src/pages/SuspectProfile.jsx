@@ -1,15 +1,19 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link, useParams } from 'react-router-dom'
 import HoloPanel from '../components/HoloPanel.jsx'
 import PageHeader from '../components/PageHeader.jsx'
-import { cases, suspects } from '../data/mockData.js'
+import { getSuspectById } from '../services/suspectService.js'
 
 export default function SuspectProfile() {
   const { suspectId } = useParams()
-  const suspect = suspects.find((item) => item.id === suspectId)
-  if (!suspect) return <div className="text-zinc-200">Suspect not found.</div>
-  const linkedCases = cases.filter((item) => suspect.crimes.includes(item.id))
-  const associated = suspects.filter((item) => suspect.associations.includes(item.id))
+  const [suspect, setSuspect] = useState(null)
+
+  useEffect(() => {
+    getSuspectById(suspectId).then(setSuspect)
+  }, [suspectId])
+
+  if (!suspect) return <div className="text-zinc-200">Loading...</div>
 
   return (
     <div className="space-y-8 pb-20 lg:pb-6">
@@ -37,18 +41,6 @@ export default function SuspectProfile() {
 
         <div className="space-y-5">
           <HoloPanel className="p-6">
-            <p className="text-sm text-cyan-200">Linked crimes</p>
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              {linkedCases.map((item) => (
-                <Link key={item.id} to={`/cases/${item.id}`} className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-4 transition hover:border-cyan-300/25">
-                  <p className="text-lg font-semibold text-white">{item.title}</p>
-                  <p className="mt-2 text-sm text-zinc-500">{item.type} / {item.status}</p>
-                </Link>
-              ))}
-            </div>
-          </HoloPanel>
-
-          <HoloPanel className="p-6">
             <p className="text-sm text-cyan-200">Timeline</p>
             <div className="mt-6 space-y-5">
               {['First observed near incident zone', 'Telecom metadata linked', 'Vehicle movement matched', 'Association confidence increased'].map((item, index) => (
@@ -60,13 +52,6 @@ export default function SuspectProfile() {
                   </div>
                 </motion.div>
               ))}
-            </div>
-          </HoloPanel>
-
-          <HoloPanel className="p-6">
-            <p className="text-sm text-cyan-200">Associated suspects</p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              {associated.length ? associated.map((item) => <Link key={item.id} to={`/suspects/${item.id}`} className="rounded-full border border-cyan-300/20 bg-cyan-300/[0.08] px-4 py-2 text-sm text-cyan-100">{item.name}</Link>) : <p className="text-sm text-zinc-500">No direct associations indexed.</p>}
             </div>
           </HoloPanel>
         </div>

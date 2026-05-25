@@ -1,11 +1,13 @@
 import api from './api.js'
-import { graphData } from '../data/mockData.js'
 
 export const graphService = {
   async getGraph() {
-    return Promise.resolve(graphData)
-  },
-  async expandNode(id) {
-    return api.get(`/graph/${id}`)
+    try {
+      const response = await api.get('/graph/network')
+      return response.data
+    } catch (error) {
+      console.error('Error fetching graph:', error)
+      return { nodes: [], edges: [] }
+    }
   }
 }

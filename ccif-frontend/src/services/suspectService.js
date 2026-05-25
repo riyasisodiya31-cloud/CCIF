@@ -4,7 +4,7 @@ export async function getSuspects() {
 
  try {
 
-   const response = await api.get("/suspects");
+   const response = await api.get("/suspects/");
 
    return response.data;
 
@@ -16,4 +16,14 @@ export async function getSuspects() {
 
  }
 
+}
+
+export async function getSuspectById(suspectId) {
+  try {
+    const response = await api.get(`/suspects/${suspectId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching suspect:', error);
+    return null;
+  }
 }
