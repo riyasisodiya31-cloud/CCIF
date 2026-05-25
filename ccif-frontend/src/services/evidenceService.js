@@ -1,10 +1,11 @@
 import api from './api.js'
+import { evidence as fallbackEvidence } from '../data/mockData.js'
 
 function normalize(item) {
   return {
     ...item,
-    caseId: item.case_id ?? item.caseId,
-    uploadedBy: item.uploaded_by ?? item.uploadedBy,
+    caseId: item.caseId || item.case_id,
+    uploadedBy: item.uploadedBy || item.uploaded_by,
   }
 }
 
@@ -14,7 +15,7 @@ export async function getEvidence() {
     return response.data.map(normalize)
   } catch (error) {
     console.error('Error fetching evidence:', error)
-    return []
+    return fallbackEvidence
   }
 }
 
@@ -23,7 +24,7 @@ export async function getEvidenceByCase(caseId) {
     const response = await api.get(`/evidence/${caseId}`)
     return response.data.map(normalize)
   } catch (error) {
-    console.error('Error fetching evidence for case:', error)
-    return []
+    console.error(`Error fetching evidence for ${caseId}:`, error)
+    return fallbackEvidence.filter((item) => item.caseId === caseId)
   }
 }

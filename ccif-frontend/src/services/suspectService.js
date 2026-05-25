@@ -1,21 +1,14 @@
 import api from "./api";
+import { suspects as fallbackSuspects } from "../data/mockData.js";
 
 export async function getSuspects() {
-
- try {
-
-   const response = await api.get("/suspects/");
-
-   return response.data;
-
- } catch(error){
-
-   console.log(error);
-
-   return [];
-
- }
-
+  try {
+    const response = await api.get("/suspects/");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching suspects:", error);
+    return fallbackSuspects;
+  }
 }
 
 export async function getSuspectById(suspectId) {
@@ -24,6 +17,6 @@ export async function getSuspectById(suspectId) {
     return response.data;
   } catch (error) {
     console.error('Error fetching suspect:', error);
-    return null;
+    return fallbackSuspects.find((s) => s.id === suspectId) || null;
   }
 }

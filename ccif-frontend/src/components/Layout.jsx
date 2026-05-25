@@ -6,10 +6,12 @@ import {
   BriefcaseBusiness,
   FileSearch,
   Gauge,
+  Landmark,
   Mic,
   Network,
   Search,
   ShieldAlert,
+  UsersRound,
   UserRoundSearch
 } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -22,7 +24,9 @@ const navItems = [
   { label: 'Evidence', to: '/evidence', icon: FileSearch },
   { label: 'Graph', to: '/graph', icon: Network },
   { label: 'Copilot', to: '/copilot', icon: Bot },
-  { label: 'Alerts', to: '/alerts', icon: ShieldAlert }
+  { label: 'Alerts', to: '/alerts', icon: ShieldAlert },
+  { label: 'Domains', to: '/crime-domains', icon: Landmark },
+  { label: 'Officers', to: '/officers', icon: UsersRound }
 ]
 
 const streamItems = [

@@ -1,7 +1,7 @@
 import cytoscape from 'cytoscape'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Crosshair, LocateFixed, Maximize2, Minus, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { graphService } from '../services/graphService.js'
 
 const nodeTypes = ['suspect', 'case', 'evidence', 'location', 'gang']
@@ -22,16 +22,19 @@ export default function IntelligenceGraph() {
   const [enabledRelationships, setEnabledRelationships] = useState(relationships)
   const [search, setSearch] = useState('')
   const [time, setTime] = useState(78)
-  const [elements, setElements] = useState([])
+  const [network, setNetwork] = useState(null)
+  const elements = useMemo(() => network ? [...network.nodes, ...network.edges] : [], [network])
 
   useEffect(() => {
-    graphService.getGraph().then(({ nodes, edges }) => {
-      setElements([...nodes, ...edges])
-    })
+    async function loadGraph() {
+      const data = await graphService.getGraph()
+      setNetwork(data)
+    }
+    loadGraph()
   }, [])
 
   useEffect(() => {
-    if (!containerRef.current || elements.length === 0) return
+    if (!containerRef.current || !elements.length) return
     cyRef.current?.destroy()
     cyRef.current = null
     cyRef.current = cytoscape({
@@ -122,7 +125,7 @@ export default function IntelligenceGraph() {
       edge.style('display', relationshipVisible && nodesVisible ? 'element' : 'none')
       edge.style('opacity', Math.max(0.18, time / 100))
     })
-  }, [enabledRelationships, enabledTypes, time])
+  }, [elements, enabledRelationships, enabledTypes, time])
 
   const focusNode = (node) => {
     const data = node.data()

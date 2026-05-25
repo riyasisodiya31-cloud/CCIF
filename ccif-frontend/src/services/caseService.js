@@ -1,4 +1,5 @@
 import api from "./api";
+import { cases as fallbackCases } from "../data/mockData.js";
 
 export async function getCases() {
   try {
@@ -6,7 +7,7 @@ export async function getCases() {
     return response.data;
   } catch (error) {
     console.error("Error fetching cases:", error);
-    return [];
+    return fallbackCases;
   }
 }
 
@@ -16,6 +17,6 @@ export async function getCaseById(caseId) {
     return response.data;
   } catch (error) {
     console.error("Error fetching case:", error);
-    return null;
+    return fallbackCases.find((c) => c.id === caseId) || null;
   }
 }

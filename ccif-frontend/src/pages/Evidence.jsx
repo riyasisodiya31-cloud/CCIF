@@ -4,13 +4,18 @@ import { Fingerprint, ShieldCheck, Workflow } from 'lucide-react'
 import HoloPanel from '../components/HoloPanel.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
+import { evidence as fallbackEvidence } from '../data/mockData.js'
 import { getEvidence } from '../services/evidenceService.js'
 
 export default function Evidence() {
-  const [evidence, setEvidence] = useState([])
+  const [evidence, setEvidence] = useState(fallbackEvidence)
 
   useEffect(() => {
-    getEvidence().then(setEvidence)
+    async function loadEvidence() {
+      const data = await getEvidence()
+      setEvidence(data.length ? data : fallbackEvidence)
+    }
+    loadEvidence()
   }, [])
 
   const verified = evidence.filter((item) => item.integrity === 'Verified' || item.integrity === 'Intact').length

@@ -1,4 +1,5 @@
 import api from "./api";
+import { alerts as fallbackAlerts } from "../data/mockData.js";
 
 export async function getAlerts(){
 
@@ -15,7 +16,7 @@ export async function getAlerts(){
 
  console.log(error);
 
- return [];
+ return fallbackAlerts;
 
  }
 

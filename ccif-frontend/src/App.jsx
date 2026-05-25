@@ -9,6 +9,8 @@ import Evidence from './pages/Evidence.jsx'
 import Alerts from './pages/Alerts.jsx'
 import IntelligenceGraph from './pages/IntelligenceGraph.jsx'
 import AICopilot from './pages/AICopilot.jsx'
+import CrimeDomains from './pages/CrimeDomains.jsx'
+import Officers from './pages/Officers.jsx'
 
 export default function App() {
   return (
@@ -24,6 +26,8 @@ export default function App() {
         <Route path="/alerts" element={<Alerts />} />
         <Route path="/graph" element={<IntelligenceGraph />} />
         <Route path="/copilot" element={<AICopilot />} />
+        <Route path="/crime-domains" element={<CrimeDomains />} />
+        <Route path="/officers" element={<Officers />} />
       </Route>
     </Routes>
   )
