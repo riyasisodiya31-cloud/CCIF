@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
 import { getCases } from "../services/caseService";
 
 export default function Cases() {
@@ -17,18 +19,25 @@ export default function Cases() {
   return (
     <div className="space-y-8">
       
-      <div>
-        <p className="text-cyan-400 text-sm tracking-[0.3em] uppercase">
-          Intelligence Network
-        </p>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-cyan-400 text-sm tracking-[0.3em] uppercase">
+            Intelligence Network
+          </p>
 
-        <h1 className="text-5xl font-bold mt-2">
-          Active Investigations
-        </h1>
+          <h1 className="text-5xl font-bold mt-2">
+            Active Investigations
+          </h1>
 
-        <p className="text-zinc-400 mt-3">
-          Connected criminal activity monitored by CCIF
-        </p>
+          <p className="text-zinc-400 mt-3">
+            Connected criminal activity monitored by CCIF
+          </p>
+        </div>
+
+        <Link to="/cases/new" className="inline-flex w-fit items-center gap-2 rounded-full bg-cyan-300 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-cyan-200">
+          <Plus size={18} />
+          Add Case
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -57,6 +66,7 @@ export default function Cases() {
             shadow-[0_0_40px_rgba(0,255,255,0.08)]
             "
           >
+            <Link to={`/cases/${item.id}`} className="absolute inset-0 z-10" aria-label={`Open ${item.title}`} />
 
             <div className="absolute top-0 right-0 h-40 w-40 bg-cyan-500/10 blur-3xl"/>
 

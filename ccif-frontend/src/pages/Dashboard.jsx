@@ -1,17 +1,53 @@
 import cytoscape from 'cytoscape'
 import { motion } from 'framer-motion'
 import { Activity, BrainCircuit, Crosshair, Radar, ShieldCheck, Sparkles, Zap } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import HoloPanel from '../components/HoloPanel.jsx'
-import { alerts, cases, evidence, graphData, locations, suspects } from '../data/mockData.js'
-
-const summary = [
-  { value: '3', label: 'emerging criminal clusters detected' },
-  { value: '2', label: 'cold case matches identified' },
-  { value: '7', label: 'active threat alerts' }
-]
+import { alerts as fallbackAlerts, cases as fallbackCases, evidence as fallbackEvidence, graphData as fallbackGraphData, locations } from '../data/mockData.js'
+import { getAlerts } from '../services/alertService.js'
+import { getCases } from '../services/caseService.js'
+import { getDashboardStats } from '../services/dashboardService.js'
+import { getEvidence } from '../services/evidenceService.js'
+import { graphService } from '../services/graphService.js'
 
 export default function Dashboard() {
+  const [cases, setCases] = useState(fallbackCases)
+  const [alerts, setAlerts] = useState(fallbackAlerts)
+  const [evidence, setEvidence] = useState(fallbackEvidence)
+  const [graph, setGraph] = useState(fallbackGraphData)
+  const [stats, setStats] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadDashboard() {
+      const [statsData, casesData, alertsData, evidenceData, graphData] = await Promise.all([
+        getDashboardStats(),
+        getCases(),
+        getAlerts(),
+        getEvidence(),
+        graphService.getGraph()
+      ])
+
+      if (cancelled) return
+
+      setStats(statsData)
+      setCases(casesData.length ? casesData : fallbackCases)
+      setAlerts(alertsData.length ? alertsData : fallbackAlerts)
+      setEvidence(evidenceData.length ? evidenceData : fallbackEvidence)
+      setGraph(graphData?.nodes?.length ? graphData : fallbackGraphData)
+    }
+
+    loadDashboard()
+    return () => { cancelled = true }
+  }, [])
+
+  const summary = useMemo(() => [
+    { value: String(stats?.criticalCases ?? cases.filter((item) => item.status === 'Critical').length), label: 'critical investigations indexed' },
+    { value: String(stats?.activeCases ?? cases.filter((item) => item.status === 'Active').length), label: 'active cases synchronized' },
+    { value: String(stats?.activeAlerts ?? alerts.length), label: 'active threat alerts' }
+  ], [alerts.length, cases, stats])
+
   return (
     <div className="space-y-8 pb-20 lg:pb-6">
       <section className="grid min-h-[620px] items-center gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(460px,0.75fr)]">
@@ -45,28 +81,31 @@ export default function Dashboard() {
         </motion.div>
 
         <motion.div className="relative" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.15 }}>
-          <NetworkPreview />
+          <NetworkPreview graphData={graph} />
         </motion.div>
       </section>
 
       <section className="columns-1 gap-5 space-y-5 xl:columns-2 2xl:columns-3">
         <ThreatRadar />
         <CrimeHeatmap />
-        <InvestigationTimeline />
-        <LiveAlertsModule />
+        <InvestigationTimeline cases={cases} />
+        <LiveAlertsModule alerts={alerts} />
         <AiInsights />
-        <TrustConstellation />
+        <TrustConstellation evidence={evidence} />
       </section>
     </div>
   )
 }
 
-function NetworkPreview() {
+function NetworkPreview({ graphData }) {
   const ref = useRef(null)
   const cyRef = useRef(null)
 
   useEffect(() => {
-    if (!ref.current || cyRef.current) return
+    if (!ref.current) return
+    cyRef.current?.destroy()
+    cyRef.current = null
+
     const elements = [
       ...graphData.nodes.slice(0, 22),
       ...graphData.edges.slice(0, 32).filter((edge) => {
@@ -116,7 +155,7 @@ function NetworkPreview() {
       cyRef.current?.destroy()
       cyRef.current = null
     }
-  }, [])
+  }, [graphData])
 
   return (
     <div className="glass-panel edge-glow scanline relative h-[540px] overflow-hidden rounded-[2.25rem] p-4 shadow-[0_0_90px_rgba(34,211,238,.12)]">
@@ -187,7 +226,7 @@ function CrimeHeatmap() {
   )
 }
 
-function InvestigationTimeline() {
+function InvestigationTimeline({ cases }) {
   return (
     <HoloPanel className="mb-5 inline-block w-full break-inside-avoid p-6">
       <PanelTitle icon={Activity} label="Active Investigations" />
@@ -209,7 +248,7 @@ function InvestigationTimeline() {
   )
 }
 
-function LiveAlertsModule() {
+function LiveAlertsModule({ alerts }) {
   return (
     <HoloPanel className="mb-5 inline-block w-full break-inside-avoid p-6">
       <PanelTitle icon={Zap} label="Live Alerts" />
@@ -249,7 +288,7 @@ function AiInsights() {
   )
 }
 
-function TrustConstellation() {
+function TrustConstellation({ evidence }) {
   return (
     <HoloPanel className="mb-5 inline-block w-full break-inside-avoid p-6">
       <PanelTitle icon={ShieldCheck} label="Trust Score Fabric" />

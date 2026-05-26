@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Cases from './pages/Cases.jsx'
+import AddCase from './pages/AddCase.jsx'
 import CaseDetail from './pages/CaseDetail.jsx'
 import Suspects from './pages/Suspects.jsx'
 import SuspectProfile from './pages/SuspectProfile.jsx'
@@ -19,6 +20,7 @@ export default function App() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/cases" element={<Cases />} />
+        <Route path="/cases/new" element={<AddCase />} />
         <Route path="/cases/:caseId" element={<CaseDetail />} />
         <Route path="/suspects" element={<Suspects />} />
         <Route path="/suspects/:suspectId" element={<SuspectProfile />} />

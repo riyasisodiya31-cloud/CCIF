@@ -2,6 +2,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import alerts, cases, copilot, crimes, dashboard, evidence, graph, officers, suspects
 
+ROUTERS = (
+    (cases.router, "/cases", ["Cases"]),
+    (suspects.router, "/suspects", ["Suspects"]),
+    (alerts.router, "/alerts", ["Alerts"]),
+    (evidence.router, "/evidence", ["Evidence"]),
+    (dashboard.router, "/dashboard", ["Dashboard"]),
+    (graph.router, "/graph", ["Graph"]),
+    (copilot.router, "/copilot", ["Copilot"]),
+    (crimes.router, "/crimes", ["Crimes"]),
+    (officers.router, "/officers", ["Officers"]),
+)
+
 app = FastAPI(
     title="CCIF API",
     description="Cognitive Criminal Intelligence Fabric"
@@ -26,49 +38,11 @@ def home():
         "message":"CCIF Backend Running"
     }
 
-app.include_router(
-    cases.router,
-    prefix="/cases",
-    tags=["Cases"]
-)
+@app.get("/api")
+def api_home():
+    return home()
 
-app.include_router(
-    suspects.router,
-    prefix="/suspects",
-    tags=["Suspects"]
-)
-app.include_router(
-    alerts.router,
-    prefix="/alerts",
-    tags=["Alerts"]
-)
-app.include_router(
-    evidence.router,
-    prefix="/evidence",
-    tags=["Evidence"]
-)
-app.include_router(
-    dashboard.router,
-    prefix="/dashboard",
-    tags=["Dashboard"]
-)
-app.include_router(
-    graph.router,
-    prefix="/graph",
-    tags=["Graph"]
-)
-app.include_router(
-    copilot.router,
-    prefix="/copilot",
-    tags=["Copilot"]
-)
-app.include_router(
-    crimes.router,
-    prefix="/crimes",
-    tags=["Crimes"]
-)
-app.include_router(
-    officers.router,
-    prefix="/officers",
-    tags=["Officers"]
-)
+
+for router, prefix, tags in ROUTERS:
+    app.include_router(router, prefix=prefix, tags=tags)
+    app.include_router(router, prefix=f"/api{prefix}", tags=tags)

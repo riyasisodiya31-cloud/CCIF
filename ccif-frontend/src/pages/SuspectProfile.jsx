@@ -1,15 +1,45 @@
 import { motion } from 'framer-motion'
 import { Link, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import HoloPanel from '../components/HoloPanel.jsx'
 import PageHeader from '../components/PageHeader.jsx'
-import { cases, suspects } from '../data/mockData.js'
+import { cases as fallbackCases, suspects as fallbackSuspects } from '../data/mockData.js'
+import { getCases } from '../services/caseService.js'
+import { getSuspect, getSuspects } from '../services/suspectService.js'
 
 export default function SuspectProfile() {
   const { suspectId } = useParams()
-  const suspect = suspects.find((item) => item.id === suspectId)
+  const [suspect, setSuspect] = useState(null)
+  const [cases, setCases] = useState(fallbackCases)
+  const [suspects, setSuspects] = useState(fallbackSuspects)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadSuspect() {
+      const [liveSuspect, liveCases, liveSuspects] = await Promise.all([
+        getSuspect(suspectId),
+        getCases(),
+        getSuspects()
+      ])
+
+      if (cancelled) return
+
+      const relationshipMeta = fallbackSuspects.find((item) => item.id === suspectId) || {}
+      setSuspect(liveSuspect ? { ...relationshipMeta, ...liveSuspect } : null)
+      setCases(liveCases.length ? liveCases : fallbackCases)
+      setSuspects(liveSuspects.length ? liveSuspects : fallbackSuspects)
+    }
+
+    loadSuspect()
+    return () => { cancelled = true }
+  }, [suspectId])
+
   if (!suspect) return <div className="text-zinc-200">Suspect not found.</div>
-  const linkedCases = cases.filter((item) => suspect.crimes.includes(item.id))
-  const associated = suspects.filter((item) => suspect.associations.includes(item.id))
+  const crimeIds = suspect.crimes || fallbackSuspects.find((item) => item.id === suspectId)?.crimes || []
+  const associationIds = suspect.associations || fallbackSuspects.find((item) => item.id === suspectId)?.associations || []
+  const linkedCases = cases.filter((item) => crimeIds.includes(item.id))
+  const associated = suspects.filter((item) => associationIds.includes(item.id))
 
   return (
     <div className="space-y-8 pb-20 lg:pb-6">

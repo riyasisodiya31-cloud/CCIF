@@ -1,5 +1,6 @@
 import {useEffect,useState} from "react";
 import {motion} from "framer-motion";
+import {Link} from "react-router-dom";
 
 import {getSuspects}
 from "../services/suspectService";
@@ -61,6 +62,7 @@ delay:index*0.1
 }}
 
 className="
+relative
 rounded-3xl
 bg-white/5
 border
@@ -69,6 +71,7 @@ backdrop-blur-xl
 p-6
 "
 >
+<Link to={`/suspects/${suspect.id}`} className="absolute inset-0 z-10" aria-label={`Open ${suspect.name}`} />
 
 <p className="text-zinc-500">
 {suspect.id}

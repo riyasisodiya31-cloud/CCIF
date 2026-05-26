@@ -6,5 +6,5 @@ def get_connection():
         host="localhost",
         database="ccif",
         user="postgres",
-        password="riyasiso25"
+        password="Disel888"
     )

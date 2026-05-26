@@ -1,5 +1,5 @@
-import api from './api.js'
-import { graphData } from '../data/mockData.js'
+import api from "./api";
+import { graphData } from "../data/mockData";
 
 function normalizeGraph(data) {
   return {
@@ -8,30 +8,38 @@ function normalizeGraph(data) {
       data: {
         ...node.data,
         type: node.data.type || node.data.group,
-        risk: node.data.risk || 72
-      }
+        risk: node.data.risk || 72,
+      },
     })),
     edges: data.edges.map((edge) => ({
       ...edge,
       data: {
         ...edge.data,
-        label: edge.data.label || edge.data.relationship
-      }
-    }))
-  }
+        label: edge.data.label || edge.data.relationship || "related",
+        confidence: edge.data.confidence || 50,
+      },
+    })),
+  };
 }
 
 export const graphService = {
   async getGraph() {
     try {
-      const response = await api.get('/graph/network')
-      return normalizeGraph(response.data)
+      const response = await api.get("/graph/network");
+      return { ...normalizeGraph(response.data), isMock: false };
     } catch (error) {
-      console.error('Error fetching graph:', error)
-      return graphData
+      console.error("Graph fetch failed, using mock data:", error);
+      return { ...normalizeGraph(graphData), isMock: true };
     }
   },
+
   async expandNode(id) {
-    return api.get(`/graph/${id}`)
-  }
-}
+    try {
+      const response = await api.get(`/graph/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Expand node failed:", error);
+      return null;
+    }
+  },
+};
