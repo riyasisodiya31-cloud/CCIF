@@ -4,20 +4,46 @@ import { Link, useParams } from 'react-router-dom'
 import HoloPanel from '../components/HoloPanel.jsx'
 import PageHeader from '../components/PageHeader.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
-import { getCaseById } from '../services/caseService.js'
+import { cases as fallbackCases, evidence as fallbackEvidence, suspects as fallbackSuspects } from '../data/mockData.js'
+import { getCase } from '../services/caseService.js'
 import { getEvidenceByCase } from '../services/evidenceService.js'
+import { getSuspects } from '../services/suspectService.js'
 
 export default function CaseDetail() {
   const { caseId } = useParams()
   const [caseItem, setCaseItem] = useState(null)
-  const [linkedEvidence, setLinkedEvidence] = useState([])
+  const [suspects, setSuspects] = useState(fallbackSuspects)
+  const [evidence, setEvidence] = useState(fallbackEvidence.filter((item) => item.caseId === caseId))
 
   useEffect(() => {
-    getCaseById(caseId).then(setCaseItem)
-    getEvidenceByCase(caseId).then((data) => setLinkedEvidence(data.slice(0, 10)))
+    let cancelled = false
+
+    async function loadCase() {
+      const [liveCase, liveSuspects, liveEvidence] = await Promise.all([
+        getCase(caseId),
+        getSuspects(),
+        getEvidenceByCase(caseId)
+      ])
+
+      if (cancelled) return
+
+      const relationshipMeta = fallbackCases.find((item) => item.id === caseId) || {}
+      setCaseItem(liveCase ? { ...relationshipMeta, ...liveCase } : null)
+      setSuspects(liveSuspects.length ? liveSuspects : fallbackSuspects)
+      setEvidence(liveEvidence.length ? liveEvidence : fallbackEvidence.filter((item) => item.caseId === caseId))
+    }
+
+    loadCase()
+    return () => { cancelled = true }
   }, [caseId])
 
-  if (!caseItem) return <div className="text-zinc-200">Loading...</div>
+  if (!caseItem) return <div className="text-zinc-200">Case not found.</div>
+
+  const linkedSuspectIds = caseItem.suspects || fallbackCases.find((item) => item.id === caseId)?.suspects || []
+  const relatedCaseIds = caseItem.related || fallbackCases.find((item) => item.id === caseId)?.related || []
+  const linkedSuspects = suspects.filter((item) => linkedSuspectIds.includes(item.id))
+  const linkedEvidence = evidence.filter((item) => item.caseId === caseItem.id).slice(0, 10)
+  const relatedCases = fallbackCases.filter((item) => relatedCaseIds.includes(item.id))
 
   return (
     <div className="space-y-8 pb-20 lg:pb-6">
@@ -36,7 +62,7 @@ export default function CaseDetail() {
                 {[
                   ['Officer', caseItem.officer],
                   ['Date opened', caseItem.date],
-                  ['Status', caseItem.status]
+                  ['Related cases', String(relatedCaseIds.length)]
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-4">
                     <p className="text-sm text-zinc-500">{label}</p>
@@ -59,16 +85,29 @@ export default function CaseDetail() {
         </HoloPanel>
 
         <HoloPanel className="p-5">
-          <p className="text-sm text-cyan-200">Case details</p>
-          <div className="mt-5 space-y-3 text-sm text-zinc-400">
-            <p>Location: <span className="text-zinc-100">{caseItem.location}</span></p>
-            <p>Officer: <span className="text-zinc-100">{caseItem.officer}</span></p>
-            <p>Type: <span className="text-zinc-100">{caseItem.type}</span></p>
+          <p className="text-sm text-cyan-200">Related fabric</p>
+          <div className="mt-5 space-y-3">
+            {relatedCases.length ? relatedCases.map((item) => (
+              <Link key={item.id} to={`/cases/${item.id}`} className="block rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-4 text-sm text-zinc-300 transition hover:border-cyan-300/25 hover:text-white">{item.title}</Link>
+            )) : <p className="text-sm text-zinc-500">No related cases indexed.</p>}
           </div>
         </HoloPanel>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-2">
+        <HoloPanel className="p-6">
+          <p className="text-sm text-cyan-200">Linked suspects</p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            {linkedSuspects.length ? linkedSuspects.map((item) => (
+              <Link key={item.id} to={`/suspects/${item.id}`} className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-4 transition hover:border-cyan-300/25">
+                <p className="font-medium text-white">{item.name}</p>
+                <p className="mt-2 text-sm text-zinc-500">{item.gang}</p>
+                <div className="mt-4 h-1.5 rounded-full bg-white/10"><div className="h-full rounded-full bg-cyan-300" style={{ width: `${item.risk}%` }} /></div>
+              </Link>
+            )) : <p className="text-sm text-zinc-500">No suspects linked.</p>}
+          </div>
+        </HoloPanel>
+
         <HoloPanel className="p-6">
           <p className="text-sm text-cyan-200">Evidence strand</p>
           <div className="mt-5 grid gap-3">

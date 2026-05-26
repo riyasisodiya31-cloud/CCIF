@@ -14,3 +14,12 @@ export async function getDashboardData() {
     return { cases: [], suspects: [], evidence: [], alerts: [] }
   }
 }
+
+export async function getDashboardStats() {
+  try {
+    const response = await api.get('/stats/')
+    return response.data
+  } catch {
+    return null
+  }
+}

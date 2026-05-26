@@ -156,6 +156,32 @@ input[type="range"] {
   accent-color: #22d3ee;
 }
 
+.field-input {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(9, 9, 11, 0.42);
+  padding: 0.9rem 1rem;
+  color: #f4f4f5;
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.field-input:focus {
+  border-color: rgba(34, 211, 238, 0.5);
+  background: rgba(9, 9, 11, 0.62);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08);
+}
+
+.field-input::placeholder {
+  color: #71717a;
+}
+
+.field-input option {
+  background: #111111;
+  color: #f4f4f5;
+}
+
 @keyframes scanline {
   0% {
     transform: translateY(-40%);

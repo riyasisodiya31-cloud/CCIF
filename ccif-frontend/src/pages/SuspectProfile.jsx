@@ -3,17 +3,44 @@ import { motion } from 'framer-motion'
 import { Link, useParams } from 'react-router-dom'
 import HoloPanel from '../components/HoloPanel.jsx'
 import PageHeader from '../components/PageHeader.jsx'
-import { getSuspectById } from '../services/suspectService.js'
+import { cases as fallbackCases, suspects as fallbackSuspects } from '../data/mockData.js'
+import { getCases } from '../services/caseService.js'
+import { getSuspect, getSuspects } from '../services/suspectService.js'
 
 export default function SuspectProfile() {
   const { suspectId } = useParams()
   const [suspect, setSuspect] = useState(null)
+  const [cases, setCases] = useState(fallbackCases)
+  const [suspects, setSuspects] = useState(fallbackSuspects)
 
   useEffect(() => {
-    getSuspectById(suspectId).then(setSuspect)
+    let cancelled = false
+
+    async function loadSuspect() {
+      const [liveSuspect, liveCases, liveSuspects] = await Promise.all([
+        getSuspect(suspectId),
+        getCases(),
+        getSuspects()
+      ])
+
+      if (cancelled) return
+
+      const relationshipMeta = fallbackSuspects.find((item) => item.id === suspectId) || {}
+      setSuspect(liveSuspect ? { ...relationshipMeta, ...liveSuspect } : null)
+      setCases(liveCases.length ? liveCases : fallbackCases)
+      setSuspects(liveSuspects.length ? liveSuspects : fallbackSuspects)
+    }
+
+    loadSuspect()
+    return () => { cancelled = true }
   }, [suspectId])
 
-  if (!suspect) return <div className="text-zinc-200">Loading...</div>
+  if (!suspect) return <div className="text-zinc-200">Suspect not found.</div>
+
+  const crimeIds = suspect.crimes || fallbackSuspects.find((item) => item.id === suspectId)?.crimes || []
+  const associationIds = suspect.associations || fallbackSuspects.find((item) => item.id === suspectId)?.associations || []
+  const linkedCases = cases.filter((item) => crimeIds.includes(item.id))
+  const associated = suspects.filter((item) => associationIds.includes(item.id))
 
   return (
     <div className="space-y-8 pb-20 lg:pb-6">
@@ -54,6 +81,31 @@ export default function SuspectProfile() {
               ))}
             </div>
           </HoloPanel>
+
+          {linkedCases.length > 0 && (
+            <HoloPanel className="p-6">
+              <p className="text-sm text-cyan-200">Linked crimes</p>
+              <div className="mt-5 space-y-3">
+                {linkedCases.map((item) => (
+                  <Link key={item.id} to={`/cases/${item.id}`} className="block rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-4 text-sm text-zinc-300 transition hover:border-cyan-300/25 hover:text-white">{item.title}</Link>
+                ))}
+              </div>
+            </HoloPanel>
+          )}
+
+          {associated.length > 0 && (
+            <HoloPanel className="p-6">
+              <p className="text-sm text-cyan-200">Known associates</p>
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                {associated.map((item) => (
+                  <Link key={item.id} to={`/suspects/${item.id}`} className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-4 transition hover:border-cyan-300/25">
+                    <p className="font-medium text-white">{item.name}</p>
+                    <p className="mt-2 text-sm text-zinc-500">{item.gang}</p>
+                  </Link>
+                ))}
+              </div>
+            </HoloPanel>
+          )}
         </div>
       </div>
     </div>

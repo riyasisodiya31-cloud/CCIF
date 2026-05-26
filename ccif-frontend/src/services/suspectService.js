@@ -20,3 +20,5 @@ export async function getSuspectById(suspectId) {
     return fallbackSuspects.find((s) => s.id === suspectId) || null;
   }
 }
+
+export { getSuspectById as getSuspect };
